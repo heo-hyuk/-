@@ -55,10 +55,11 @@ npm run dev
 ## 주요 기능
 
 - 할 일 등록 (제목, 내용, 마감일, 카테고리)
-- 할 일 목록 조회
+- 할 일 목록 조회 (페이지네이션, 5개씩)
 - 완료 여부 토글
 - 개별 삭제 / 완료 항목 일괄 삭제 / 전체 삭제
 - 상태별 필터 (전체 / 미완료 / 완료)
+- 마감일 임박(24시간 이내) / 기한 초과 항목 구분 표시
 
 ## ERD
 
@@ -78,13 +79,16 @@ npm run dev
 
 Base URL: `http://localhost:8080/api/todos`
 
-| Method | Endpoint | 설명 | Request Body | Response |
+| Method | Endpoint | 설명 | Query Params / Request Body | Response |
 |---|---|---|---|---|
-| GET | `/api/todos` | 할 일 전체 조회 | - | `Todo[]` |
+| GET | `/api/todos` | 할 일 목록 조회 (필터 + 페이지네이션) | `filter`(all\|active\|completed, 기본 all), `page`(기본 0), `size`(기본 5) | `Page<Todo>` |
+| GET | `/api/todos/active-count` | 미완료 개수 (필터/페이지 무관 전체 기준) | - | `number` |
 | GET | `/api/todos/{id}` | 할 일 단건 조회 | - | `Todo` |
 | POST | `/api/todos` | 할 일 등록 | `{ title, content, dueDate, category }` | `Todo` |
 | PATCH | `/api/todos/{id}/toggle` | 완료 여부 토글 | - | `Todo` |
-| DELETE | `/api/todos/{id}` | 할 일 삭제 | - | `204 No Content` |
+| DELETE | `/api/todos/{id}` | 할 일 단건 삭제 | - | `204 No Content` |
+| DELETE | `/api/todos/completed` | 완료 항목 일괄 삭제 | - | `204 No Content` |
+| DELETE | `/api/todos` | 전체 삭제 | - | `204 No Content` |
 
 ### Todo 응답 예시
 
@@ -97,5 +101,17 @@ Base URL: `http://localhost:8080/api/todos`
   "category": "업무",
   "completed": false,
   "createdAt": "2026-08-28T09:05:00"
+}
+```
+
+### GET /api/todos 응답 예시 (Page)
+
+```json
+{
+  "content": [ { "id": 7, "title": "할일7", "...": "..." } ],
+  "totalElements": 7,
+  "totalPages": 2,
+  "number": 0,
+  "size": 5
 }
 ```

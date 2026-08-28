@@ -3,10 +3,13 @@ package com.todo.controller;
 import com.todo.dto.TodoRequest;
 import com.todo.entity.Todo;
 import com.todo.repository.TodoRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/todos")
@@ -19,10 +22,27 @@ public class TodoController {
         this.todoRepository = todoRepository;
     }
 
-    // 전체 조회
+    // 목록 조회 (필터 + 페이지네이션)
     @GetMapping
-    public List<Todo> getTodos() {
-        return todoRepository.findAll();
+    public Page<Todo> getTodos(
+            @RequestParam(defaultValue = "all") String filter,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
+        if ("active".equals(filter)) {
+            return todoRepository.findByCompleted(false, pageable);
+        }
+        if ("completed".equals(filter)) {
+            return todoRepository.findByCompleted(true, pageable);
+        }
+        return todoRepository.findAll(pageable);
+    }
+
+    // 미완료 개수 (필터/페이지와 무관하게 항상 전체 기준)
+    @GetMapping("/active-count")
+    public long getActiveCount() {
+        return todoRepository.countByCompleted(false);
     }
 
     // 단건 조회
@@ -51,7 +71,22 @@ public class TodoController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // 삭제
+    // 완료 항목 일괄 삭제
+    @DeleteMapping("/completed")
+    @Transactional
+    public ResponseEntity<Void> deleteCompletedTodos() {
+        todoRepository.deleteByCompleted(true);
+        return ResponseEntity.noContent().build();
+    }
+
+    // 전체 삭제
+    @DeleteMapping
+    public ResponseEntity<Void> deleteAllTodos() {
+        todoRepository.deleteAll();
+        return ResponseEntity.noContent().build();
+    }
+
+    // 단건 삭제
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTodo(@PathVariable Long id) {
         if (!todoRepository.existsById(id)) {
