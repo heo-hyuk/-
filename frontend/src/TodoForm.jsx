@@ -33,13 +33,16 @@ function TodoForm({ onAdd }) {
         rows={2}
         className="resize-none border border-gray-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
       />
-      <div className="flex gap-2">
-        <input
-          type="date"
-          value={dueDate}
-          onChange={(e) => setDueDate(e.target.value)}
-          className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-400"
-        />
+      <div className="flex items-end gap-2">
+        <div className="flex-1">
+          <label className="mb-1 block text-xs text-gray-400">마감일 설정하기</label>
+          <input
+            type="date"
+            value={dueDate}
+            onChange={(e) => setDueDate(e.target.value)}
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-400"
+          />
+        </div>
         <select
           value={category}
           onChange={(e) => setCategory(e.target.value)}
